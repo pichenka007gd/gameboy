@@ -28,7 +28,7 @@ class Memory:
         elif address < 0xFFFF:  # HRAM
             return self.hram[address - 0xFF80]
         else:  # Interrupt Enable Register
-            return 1#self.ie
+            IndexError("address error")
 
     def write_byte(self, address: int, value: int):
         """Запись байта в память"""
@@ -51,4 +51,4 @@ class Memory:
         elif address < 0xFFFF:  # HRAM
             self.hram[address - 0xFF80] = value
         else:  # Interrupt Enable Register
-            self.ie = value
+            IndexError("address error")
