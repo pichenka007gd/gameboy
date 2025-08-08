@@ -1,7 +1,8 @@
 from memory import Memory
-
+from logger import Logger
 import ctypes
 
+log = Logger()
 
 class CPU:
     def __init__(self) -> None:
@@ -34,6 +35,8 @@ class CPU:
             'HL': (self.h, self.l),
             'AF': (self.a, self.f)
         }
+
+        self.temp = 0x00 
         
     def get_reg_pair(self, pair: str) -> int:
         high, low = self.get_reg(pair[0]), self.get_reg(pair[1])
@@ -86,7 +89,8 @@ class CPU:
         value = self.memory.read_byte(self.sp) | (self.memory.read_byte(self.sp + 1) << 8)
         self.sp += 2
         return value
-        
+    
+    #@log.step_log()
     def step(self) -> int:
         opcode = self.read_byte()
         self.execute_instruction(opcode)
@@ -122,7 +126,7 @@ class CPU:
         temp = self.get_register_pair(regpair) - value
         self.set_flag(self.FLAG_H, (self.get_register_pair(regpair) & 0xFFF) < (value & 0xFFF))
         self.set_flag(self.FLAG_C, temp < 0)
-        self.set_register_pair(regpair, temp & 0xFFFF)
+        self.set_reg_pair(regpair, temp & 0xFFFF)
         self.set_flag(self.FLAG_N, True)
 
     def adc_reg(self, reg: str, value: int) -> None:
@@ -204,108 +208,7 @@ class CPU:
         self.set_reg_pair(regpair, result)
 
     def execute_instruction(self, opcode: int) -> bool:
-        """
-        # 8-битные загрузки
-        elif opcode == 0x3E:  # LD A,n
-            self.a = self.read_byte()
-            self.cycles = 8
-
-
-            self.cycles = 8
-        elif opcode == 0x16:  # LD D,n
-            self.d = self.read_byte()
-            self.cycles = 8
-        elif opcode == 0x1E:  # LD E,n
-            self.e = self.read_byte()
-            self.cycles = 8
-        elif opcode == 0x26:  # LD H,n
-            self.h = self.read_byte()
-            self.cycles = 8
-        elif opcode == 0x2E:  # LD L,n
-            self.l = self.read_byte()
-            self.cycles = 8
-            
-        # 16-битные загрузки
-        elif opcode == 0x01:  # LD BC,nn
-            self.set_reg_pair('BC', self.read_word())
-            self.cycles = 12
-        elif opcode == 0x11:  # LD DE,nn
-            self.set_reg_pair('DE', self.read_word())
-            self.cycles = 12
-
-            self.cycles = 12
-        elif opcode == 0x31:  # LD SP,nn
-            self.sp = self.read_word()
-            self.cycles = 12
-            
-        # Арифметические операции
-        elif opcode == 0x80:  # ADD A,B
-            self.add_a(self.b)
-        elif opcode == 0x81:  # ADD A,C
-            self.add_a(self.c)
-        elif opcode == 0x82:  # ADD A,D
-            self.add_a(self.d)
-        elif opcode == 0x83:  # ADD A,E
-            self.add_a(self.e)
-        elif opcode == 0x84:  # ADD A,H
-            self.add_a(self.h)
-        elif opcode == 0x85:  # ADD A,L
-            self.add_a(self.l)
-        elif opcode == 0x86:  # ADD A,(HL)
-            self.add_a(self.memory.read_byte(self.get_reg_pair('HL')))
-            self.cycles = 8
-        elif opcode == 0x87:  # ADD A,A
-            self.add_a(self.a)
-            
-        # Логические операции
-        elif opcode == 0xA0:  # AND B
-            self.and_a(self.b)
-        elif opcode == 0xA1:  # AND C
-            self.and_a(self.c)
-        elif opcode == 0xB0:  # OR B
-            self.or_a(self.b)
-        elif opcode == 0xB1:  # OR C
-            self.or_a(self.c)
-        elif opcode == 0xA8:  # XOR B
-            self.xor_a(self.b)
-        elif opcode == 0xA9:  # XOR C
-            self.xor_a(self.c)
-
-            
-        # Переходы
-
-        elif opcode == 0xC2:  # JP NZ,nn
-            address = self.read_word()
-            if not self.get_flag(self.FLAG_Z):
-                self.pc = address
-                self.cycles = 16
-            else:
-                self.cycles = 12
-                
-        # Вызовы подпрограмм
-        elif opcode == 0xCD:  # CALL nn
-            address = self.read_word()
-            self.push(self.pc)
-            self.pc = address
-            self.cycles = 24
-            
-        # Возвраты
-        elif opcode == 0xC9:  # RET
-            self.pc = self.pop()
-            self.cycles = 16
-            
-        # Управление прерываниями
-        elif opcode == 0xF3:  # DI
-            self.interrupts_enabled = False
-        elif opcode == 0xFB:  # EI
-            self.interrupts_enabled = True
-            
-        # HALT и STOP
-        elif opcode == 0x76:  # HALT
-            self.halted = True
-        elif opcode == 0x10:  # STOP
-            self.stopped = True
-        """
+        
         self.cycles = 4  # Базовое количество циклов
 
         def cycles(x: int) -> None:
@@ -328,10 +231,10 @@ class CPU:
             self.inc_reg_pair("BC")
             cycles(8)
         elif opcode == 0x04: # INC B       | Z0H- | 1 4
-            self.inc_reg("b")
+            self.inc_reg("B")
             cycles(4)
         elif opcode == 0x05: # DEC B       | Z1H- | 1 4
-            self.dec_reg("b")
+            self.dec_reg("B")
             cycles(4)
         elif opcode == 0x06: # LD B,d8     | ---- | 2 8
             self.b = self.read_byte()
@@ -455,7 +358,7 @@ class CPU:
             self.inc_reg("H")
             cycles(4)
         elif opcode == 0x25: # DEC H       | Z1H- | 1 4
-            self.dec("H")
+            self.dec_reg("H")
             cycles(4)
         elif opcode == 0x26: # LD H,d8     | ---- | 2 8
             self.h = self.read_byte()
@@ -479,8 +382,7 @@ class CPU:
         elif opcode == 0x28: # JR Z,r8     | ---- | 2 12/8
             offset = ctypes.c_int8(self.read_byte()).value
             self.pc = (self.pc + offset) & 0xFFFF if self.get_flag(self.FLAG_Z) else self.pc
-            cycles = 12 if self.get_flag(self.FLAG_Z) else 8
-            cycles(cycles)
+            cycles(12 if self.get_flag(self.FLAG_Z) else 8)
         elif opcode == 0x29: # ADD HL,HL   | -0HC | 1 8
             self.add_reg_pair("HL", self.get_reg_pair("HL"))
             cycles(8)
@@ -533,7 +435,7 @@ class CPU:
             value = (self.memory.read_byte(self.get_reg_pair('HL')) - 1) & 0xFF
             self.memory.write_byte(self.get_reg_pair('HL'), value)
             self.set_flag(self.FLAG_Z, value == 0)
-            self.set_flag(self.FLAG_N, False)
+            self.set_flag(self.FLAG_N, True)
             self.set_flag(self.FLAG_H, (value & 0x0F) == 0x00)
             cycles(12)
         elif opcode == 0x36: # LD (HL),d8  | ---- | 2 12
@@ -967,7 +869,6 @@ class CPU:
                 cycles(20)
             else:
                 cycles(8)
-            cycles(8)
         elif opcode == 0xC1: # POP BC      | ---- | 1 12
             self.set_reg_pair("BC", self.pop())
             cycles(12)
@@ -1133,7 +1034,7 @@ class CPU:
             self.sp = result
             cycles(16)
         elif opcode == 0xE9: # JP (HL)     | ---- | 1 4
-            self.pc = self.memory(self.get_reg_pair("HL"))
+            self.pc = self.memory.read_byte(self.get_reg_pair("HL"))
             cycles(4)
         elif opcode == 0xEA: # LD (a16),A  | ---- | 3 16
             self.memory.write_byte(self.read_word(), self.a)

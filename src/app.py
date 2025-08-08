@@ -23,7 +23,7 @@ class App(threading.Thread):
         self.root = tk.Tk()
         self.root.title("Game Boy Debugger")
 
-        self.memory_text = tk.Text(self.root, width=80, height=20)
+        self.memory_text = tk.Text(self.root, width=80, height=9)
         self.memory_text.pack()
         self.memory_text.tag_configure("red", foreground="red")
 
@@ -31,6 +31,10 @@ class App(threading.Thread):
         self.info_label.pack()
         self.reg_label = tk.Label(self.root, text="")
         self.reg_label.pack()
+
+        self.ram_text = tk.Text(self.root, width=80, height=34)
+        self.ram_text.pack()
+        self.ram_text.tag_configure("green", foreground="green")
 
         self.root.after(100, self.process_commands)
 
@@ -44,6 +48,8 @@ class App(threading.Thread):
                 cmd, args = self.command_queue.get_nowait()
                 if cmd == "update_memory":
                     self._update_memory(*args)
+                elif cmd == "update_ram":
+                    self._update_ram(*args)
                 elif cmd == "update_info":
                     self._update_info(*args)
                 elif cmd == "close":
@@ -51,7 +57,22 @@ class App(threading.Thread):
                     return
         except Empty:
             pass
-        self.root.after(1, self.process_commands)
+        self.root.after(10, self.process_commands)
+
+    def update_ram(self, ram_bytes: bytearray, cpu: CPU) -> None:
+        self.command_queue.put(("update_ram", (ram_bytes, cpu,)))
+
+    def _update_ram(self, ram_bytes: bytearray, cpu: CPU) -> None:
+        self.ram_text.delete("1.0", tk.END)
+
+        for i in range(0, 256, 16):
+            chunk = ram_bytes[i:i+16]
+            hex_bytes = ' '.join(f"{b:02X}" for b in chunk)
+            ascii_bytes = ''.join((chr(b) if 32 <= b <= 126 else '.') for b in chunk)
+            line = f"{i:04X}  {hex_bytes:<48}  {ascii_bytes}\n"
+            self.ram_text.insert(tk.END, line)
+        #self.ram_text.see(f"{int(cpu.pc/16)}.0")
+        #self.ram_text.tag_add("red", f"{1}.{6+int(cpu.pc%16*3)}", f"{1}.{6+int(cpu.pc%16*3)+2}")
 
     def update_memory(self, memory_bytes: bytearray, cpu: CPU) -> None:
         self.command_queue.put(("update_memory", (memory_bytes, cpu,)))
@@ -79,16 +100,24 @@ class App(threading.Thread):
         self.command_queue.put(("close", ()))
 
 if __name__ == "__main__":
-    dbg_window = DebugWindow()
+    import random
+    import time
+
+    from types import SimpleNamespace
+
+    dbg_window = App()
     dbg_window.start()
 
     dbg_window.ready_event.wait()
 
-    import random
-    for _ in range(10):
-        fake_memory = bytearray(random.getrandbits(8) for _ in range(256))
-        dbg_window.update_memory(fake_memory)
-        dbg_window.update_info("Текущий PC: 0x0100, текущая команда: LD A,B")
-        time.sleep(1)
+    cpu = CPU()
 
-    dbg_window.close()
+    for i in range(10):
+        fake_memory = bytearray(random.getrandbits(8) for _ in range(256))
+        fake_ram = bytearray(random.getrandbits(8) for _ in range(512))
+        cpu.pc = 0x100 + i * 1
+
+        dbg_window.update_memory(fake_memory, cpu)
+        dbg_window.update_ram(fake_ram, cpu)
+        dbg_window.update_info(cpu)
+        time.sleep(1)

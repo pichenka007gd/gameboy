@@ -8,7 +8,6 @@ class GPU:
         self.cycles = 0
         self.memory = None
         
-        # GPU регистры
         self.lcdc = 0  # LCD Control
         self.stat = 0  # LCD Status
         self.scy = 0   # Scroll Y
@@ -22,11 +21,9 @@ class GPU:
         self.wx = 0    # Window X Position
         
     def connect_memory(self, memory):
-        """Подключение памяти к GPU"""
         self.memory = memory
         
     def step(self, cycles: int):
-        """Обновление GPU на указанное количество циклов"""
         self.cycles += cycles
         
         # Режимы GPU:
@@ -87,5 +84,4 @@ class GPU:
                 self.screen_buffer[self.line][x] = final_color
                 
     def get_screen(self) -> np.ndarray:
-        """Получить текущий буфер экрана"""
         return self.screen_buffer.copy()
