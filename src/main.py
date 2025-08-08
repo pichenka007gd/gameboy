@@ -56,12 +56,14 @@ class GameBoy:
     def run(self):
         self.initialize()
         last_time = time.time()
+        self.cycles = 0
         while self.running:
             while True:
                 cycles = self.cpu.step()
+                self.cycles += cycles
                 self.gpu.step(cycles)
                 self.update_screen()
-                time.sleep(0.01)
+                time.sleep(0.001)
             self.handle_input()
             
             # Эмуляция одного кадра (примерно 70224 циклов)
