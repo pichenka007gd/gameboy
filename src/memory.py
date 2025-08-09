@@ -9,6 +9,7 @@ class Memory:
         self.io = bytearray(0x80)         # I/O Registers (128 bytes)
         self.hram = bytearray(0x7F)       # High RAM (127 bytes)
         self.interrupt_enable = 0x00      # 0xFFFF
+        self.last = 0x100
         
     def read_byte(self, address: int) -> int:
         if 0x0000 <= address < 0x4000:
@@ -45,6 +46,7 @@ class Memory:
             raise IndexError(f"Address out of range: {address:#04x}")
 
     def write_byte(self, address: int, value: int):
+        self.last = address
         value = value & 0xFF  # только байт
         if 0x0000 <= address < 0x8000:
             # Здесь обычно реализуется переключение банков ROM и RAM — это MBC, никуда не пишем

@@ -51,7 +51,7 @@ class GameBoy:
         screen_surface = np.repeat(screen_buffer[:, :, np.newaxis] * 85, 3, axis=2)
         self.app.update_memory(self.memory.rom, self.cpu)
         self.app.update_info(self.cpu)
-        self.app.update_ram(self.memory.oam, self.cpu)
+        self.app.update_ram(self.memory, self.cpu)
         #cv2.imshow('Game Boy Screen', screen_surface)
         #cv2.waitKey(1)
         #self.screen.blit(screen_surface, (0, 0))
@@ -63,7 +63,7 @@ class GameBoy:
 
 
 
-        Hz = 4_190_000
+        Hz = 419.00000
         speed_coef = speed_percent / 100.0
         effective_Hz = Hz * speed_coef
 
@@ -98,6 +98,8 @@ class GameBoy:
                 last_cycles = int(time.time())
                 steps = 0
                 cycles = 0
+            if self.steps >= 1000:
+                pass
 
 
 
@@ -122,8 +124,8 @@ class GameBoy:
 
 if __name__ == "__main__":
     gameboy = GameBoy()
-    #gameboy.load_rom("../tests/gb-test-roms/")
-    gameboy.load_rom("../tests/gb-test-roms/cpu_instrs/individual/02-interrupts.gb")
+    gameboy.load_rom("/storage/emulated/0/300/gameboy/tests/tests-roms/test.gb")
+    gameboy.load_rom("/storage/emulated/0/300/gameboy/tests/gb-test-roms/cgb_sound/rom_singles/01-registers.gb")
         
     #gameboy.load_rom("../assets/Tetris (World) (Rev A).gb")
     gameboy.run()

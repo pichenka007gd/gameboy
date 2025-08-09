@@ -62,26 +62,26 @@ class App(threading.Thread):
     def update_ram(self, ram_bytes: bytearray, cpu: CPU) -> None:
         self.command_queue.put(("update_ram", (ram_bytes, cpu,)))
 
-    def _update_ram(self, ram_bytes: bytearray, cpu: CPU) -> None:
+    def _update_ram(self, memory: Memory, cpu: CPU) -> None:
         self.ram_text.delete("1.0", tk.END)
 
-        for i in range(0, 256, 16):
-            chunk = ram_bytes[i:i+16]
+        for i in range(cpu.memory.last//16*16-16, cpu.memory.last//16*16+16*16-16, 16):
+            chunk = [memory.read_byte(i) for i in range(i, i+16, 1)]
             hex_bytes = ' '.join(f"{b:02X}" for b in chunk)
             ascii_bytes = ''.join((chr(b) if 32 <= b <= 126 else '.') for b in chunk)
             line = f"{i:04X}  {hex_bytes:<48}  {ascii_bytes}\n"
             self.ram_text.insert(tk.END, line)
         #self.ram_text.see(f"{int(cpu.pc/16)}.0")
-        #self.ram_text.tag_add("red", f"{1}.{6+int(cpu.pc%16*3)}", f"{1}.{6+int(cpu.pc%16*3)+2}")
+        self.ram_text.tag_add("green", f"{2}.{6+int(memory.last%16*3)}", f"{2}.{6+int(memory.last%16*3)+2}")
 
     def update_memory(self, memory_bytes: bytearray, cpu: CPU) -> None:
         self.command_queue.put(("update_memory", (memory_bytes, cpu,)))
 
-    def _update_memory(self, memory_bytes: bytearray, cpu: CPU) -> None:
+    def _update_memory(self, ram_bytes: bytearray, cpu: CPU) -> None:
         self.memory_text.delete("1.0", tk.END)
 
-        for i in range(int(cpu.pc/16), int(cpu.pc/16)+16*8, 16):
-            chunk = memory_bytes[i:i+16]
+        for i in range(cpu.pc//16*16, cpu.pc//16*16+16*16, 16):
+            chunk = ram_bytes[i:i+16]
             hex_bytes = ' '.join(f"{b:02X}" for b in chunk)
             ascii_bytes = ''.join((chr(b) if 32 <= b <= 126 else '.') for b in chunk)
             line = f"{i:04X}  {hex_bytes:<48}  {ascii_bytes}\n"
@@ -111,13 +111,14 @@ if __name__ == "__main__":
     dbg_window.ready_event.wait()
 
     cpu = CPU()
+    cpu.connect_memory(Memory())
 
-    for i in range(10):
+    for i in range(16):
         fake_memory = bytearray(random.getrandbits(8) for _ in range(256))
         fake_ram = bytearray(random.getrandbits(8) for _ in range(512))
-        cpu.pc = 0x100 + i * 1
+        cpu.pc = 0x00 + i * 1
 
         dbg_window.update_memory(fake_memory, cpu)
         dbg_window.update_ram(fake_ram, cpu)
         dbg_window.update_info(cpu)
-        time.sleep(1)
+        time.sleep(0.5)

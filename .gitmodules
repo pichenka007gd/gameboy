@@ -4,3 +4,6 @@
 [submodule "tests/gb-test-roms"]
 	path = tests/gb-test-roms
 	url = https://github.com/retrio/gb-test-roms.git
+[submodule "tests/mgbdis"]
+	path = tests/mgbdis
+	url = https://github.com/mattcurrie/mgbdis.git
