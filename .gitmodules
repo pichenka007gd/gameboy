@@ -1,0 +1,6 @@
+[submodule "tests/tests/game-boy-test-roms"]
+	path = tests/tests/game-boy-test-roms
+	url = https://github.com/c-sp/game-boy-test-roms.git
+[submodule "tests/gb-test-roms"]
+	path = tests/gb-test-roms
+	url = https://github.com/retrio/gb-test-roms.git
