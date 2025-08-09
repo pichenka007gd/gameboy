@@ -23,7 +23,7 @@ class App(threading.Thread):
         self.root = tk.Tk()
         self.root.title("Game Boy Debugger")
 
-        self.memory_text = tk.Text(self.root, width=80, height=9)
+        self.memory_text = tk.Text(self.root, width=80, height=9, font=("Courier", 4))
         self.memory_text.pack()
         self.memory_text.tag_configure("red", foreground="red")
 
@@ -32,7 +32,7 @@ class App(threading.Thread):
         self.reg_label = tk.Label(self.root, text="")
         self.reg_label.pack()
 
-        self.ram_text = tk.Text(self.root, width=80, height=34)
+        self.ram_text = tk.Text(self.root, width=80, height=34, font=("Courier", 4))
         self.ram_text.pack()
         self.ram_text.tag_configure("green", foreground="green")
 

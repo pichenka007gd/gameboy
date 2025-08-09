@@ -52,8 +52,8 @@ class GameBoy:
         self.app.update_memory(self.memory.rom, self.cpu)
         self.app.update_info(self.cpu)
         self.app.update_ram(self.memory.oam, self.cpu)
-        cv2.imshow('Game Boy Screen', screen_surface)
-        cv2.waitKey(1)
+        #cv2.imshow('Game Boy Screen', screen_surface)
+        #cv2.waitKey(1)
         #self.screen.blit(screen_surface, (0, 0))
 
     def run(self, speed_percent=100):
@@ -122,8 +122,9 @@ class GameBoy:
 
 if __name__ == "__main__":
     gameboy = GameBoy()
-    #gameboy.load_rom("../gb-test-roms/cpu_instrs/individual/01-special.gb")
-    gameboy.load_rom("../gb-test-roms/cpu_instrs/individual/02-interrupts.gb")
+    #gameboy.load_rom("../tests/gb-test-roms/")
+    gameboy.load_rom("../tests/gb-test-roms/cpu_instrs/individual/02-interrupts.gb")
+        
     #gameboy.load_rom("../assets/Tetris (World) (Rev A).gb")
     gameboy.run()
     """if len(sys.argv) > 1:
