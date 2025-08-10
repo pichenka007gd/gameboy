@@ -50,6 +50,7 @@ class Memory:
         value = value & 0xFF  # только байт
         if 0x0000 <= address < 0x8000:
             # Здесь обычно реализуется переключение банков ROM и RAM — это MBC, никуда не пишем
+            print(address)
             self._mbc_write(address, value)
         elif 0x8000 <= address < 0xA000:
             self.vram[address - 0x8000] = value

@@ -52,6 +52,8 @@ class GameBoy:
         self.app.update_memory(self.memory.rom, self.cpu)
         self.app.update_info(self.cpu)
         self.app.update_ram(self.memory, self.cpu)
+        #
+        self.app.update_image(self.gpu.get_screen())
         #cv2.imshow('Game Boy Screen', screen_surface)
         #cv2.waitKey(1)
         #self.screen.blit(screen_surface, (0, 0))
@@ -63,7 +65,7 @@ class GameBoy:
 
 
 
-        Hz = 419.00000
+        Hz = 4190.0000
         speed_coef = speed_percent / 100.0
         effective_Hz = Hz * speed_coef
 
@@ -79,27 +81,29 @@ class GameBoy:
             pass
 
         while not self.cpu.halted or not self.cpu.stopped:
-            if time.time() - last_update > 1/30:
+            if time.time() - last_update > 1/5:
                 self.update_screen()
+                print(max(self.gpu.get_screen().reshape((144*160,))))
                 time.sleep(0.01)
                 last_update = time.time()
 
 
             if int(time.time()) == int(last_cycles) and steps < effective_Hz*(time.time()-int(time.time())):
 
-                cycles += self.cpu.step()
+                cycles = self.cpu.step()
                 self.cycles += cycles
                 self.steps += 1
                 steps += 1
-
-                #self.gpu.step(cycles)
+                self.gpu.step(cycles)
 
             if int(time.time()) != int(last_cycles):
                 last_cycles = int(time.time())
                 steps = 0
                 cycles = 0
-            if self.steps >= 1000:
+            if self.steps >= 10000:
                 pass
+                
+                
 
 
 
@@ -125,7 +129,7 @@ class GameBoy:
 if __name__ == "__main__":
     gameboy = GameBoy()
     gameboy.load_rom("/storage/emulated/0/300/gameboy/tests/tests-roms/test.gb")
-    gameboy.load_rom("/storage/emulated/0/300/gameboy/tests/gb-test-roms/cgb_sound/rom_singles/01-registers.gb")
+    gameboy.load_rom("/storage/emulated/0/300/gameboy/assets/Battle City.gb")
         
     #gameboy.load_rom("../assets/Tetris (World) (Rev A).gb")
     gameboy.run()

@@ -449,8 +449,7 @@ class CPU:
         elif opcode == 0x38: # JR C,r8     | ---- | 2 12/8
             offset = ctypes.c_int8(self.read_byte()).value
             self.pc = (self.pc + offset) & 0xFFFF if self.get_flag(self.FLAG_C) else self.pc
-            cycles = 12 if self.get_flag(self.FLAG_C) else 8
-            cycles(cycles)
+            cycles(12 if self.get_flag(self.FLAG_C) else 8)
         elif opcode == 0x39: # ADD HL,SP   | -0HC | 1 8
             result = (self.get_reg_pair('HL') + self.sp) & 0xFFFF
             self.set_flag(self.FLAG_N, False)
@@ -918,7 +917,11 @@ class CPU:
             else:
                 cycles(12)
         elif opcode == 0xCB: # PREFIX CB   | ---- | 1 4
-            print(f"prefix cb: {self.read_byte():02X}")
+            cb = self.read_byte()
+            print(f"prefix cb: {cb:02X}")
+            if cb == 0x87:
+                self.a = 0
+                print("cb reset a")
             cycles(4)
         elif opcode == 0xCC: # CALL Z,a16  | ---- | 3 24/12
             address = self.read_word()

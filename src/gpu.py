@@ -1,4 +1,8 @@
 import numpy as np
+from PIL import Image
+
+
+
 
 class GPU:
     def __init__(self):
@@ -26,33 +30,53 @@ class GPU:
     def step(self, cycles: int):
         self.cycles += cycles
         
+
+        self.lcdc = self.memory.read_byte(0xFF40)
+        self.stat = self.memory.read_byte(0xFF41)
+        self.scy = self.memory.read_byte(0xFF42)
+        self.scx = self.memory.read_byte(0xFF43)
+        self.ly = self.memory.read_byte(0xFF44)
+        self.lyc = self.memory.read_byte(0xFF45)
+        self.bgp = self.memory.read_byte(0xFF47)
+        self.obp0 = self.memory.read_byte(0xFF48)
+        self.obp1 = self.memory.read_byte(0xFF49)
+        self.wy = self.memory.read_byte(0xFF4A)
+        self.wx = self.memory.read_byte(0xFF4B)
+
+        
         # Режимы GPU:
         # Mode 0: H-Blank (период после отрисовки линии)
         # Mode 1: V-Blank (период после отрисовки всего экрана)
         # Mode 2: Scanning OAM
         # Mode 3: Transferring Data to LCD Driver
         
-        if self.cycles >= 456:  # Количество циклов на линию
+        if self.cycles >= 456:  
             self.cycles -= 456
             self.line += 1
             self.ly = self.line
             
-            if self.line == 144:  # Начало V-Blank
+            self.memory.write_byte(0xFF44, self.ly)
+            
+            if self.line == 144:  
                 self.mode = 1
-            elif self.line >= 154:  # Конец V-Blank
+            elif self.line >= 154:
                 self.line = 0
                 self.ly = 0
                 self.mode = 2
             else:
+                
+                
                 self.render_line()
                 
     def render_line(self):
+        
         """Отрисовка одной линии экрана"""
         if not (self.lcdc & 0x80):  # LCD выключен
-            return
+            return 
             
         # Отрисовка фона
         if self.lcdc & 0x01:
+            
             tile_map = 0x9800 if not (self.lcdc & 0x08) else 0x9C00
             tile_data = 0x8800 if not (self.lcdc & 0x10) else 0x8000
             
@@ -79,9 +103,10 @@ class GPU:
                 color_bit = 7 - pixel_x
                 color = ((tile_high >> color_bit) & 1) << 1 | ((tile_low >> color_bit) & 1)
                 
-                # Применяем палитру
                 final_color = (self.bgp >> (color * 2)) & 3
                 self.screen_buffer[self.line][x] = final_color
+                
+                
                 
     def get_screen(self) -> np.ndarray:
         return self.screen_buffer.copy()
