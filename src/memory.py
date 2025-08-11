@@ -7,7 +7,7 @@ class Memory:
         self.cart_ram = bytearray(0x2000) # Cartridge RAM (размер варьируется)
         self.oam = bytearray(0xA0)        # Sprite Attribute Table (160 bytes)
         self.io = bytearray(0x80)         # I/O Registers (128 bytes)
-        self.hram = bytearray(0x7F)       # High RAM (127 bytes)
+        self.hram = bytearray(0x7F)       # High RAM (127 bytes)s
         self.interrupt_enable = 0x00      # 0xFFFF
         self.last = 0x100
         
@@ -50,7 +50,6 @@ class Memory:
         value = value & 0xFF  # только байт
         if 0x0000 <= address < 0x8000:
             # Здесь обычно реализуется переключение банков ROM и RAM — это MBC, никуда не пишем
-            print(address)
             self._mbc_write(address, value)
         elif 0x8000 <= address < 0xA000:
             self.vram[address - 0x8000] = value
@@ -77,6 +76,7 @@ class Memory:
     def _mbc_write(self, address: int, value: int):
         if 0x2000 <= address < 0x4000:
             bank = value & 0x1F
+            print("bank: {bank:X02}")
             if bank == 0:
                 bank = 1
             self.rom_bank = bank
