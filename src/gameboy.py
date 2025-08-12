@@ -10,7 +10,7 @@ import time
 import numpy as np
 
 class GameBoy:
-    def __init__(self, screen: bool = True) -> None:
+    def __init__(self, window: bool = True, screen: bool = True) -> None:
         self.running = False
         self.cpu = CPU()
         self.memory = Memory()
@@ -22,15 +22,18 @@ class GameBoy:
         self.stopped = False
         self.defualt_Hz = 4
 
-        self.app = App(self)
+        self.window = window
+        if self.window:
+            self.app = App(self)
         
     def initialize(self) -> None:
         self.cpu.reset()
         self.cpu.connect_memory(self.memory)
         self.gpu.connect_memory(self.memory)
         self.running = True
-        self.app.start()
-        self.app.ready_event.wait()
+        if self.window:
+            self.app.start()
+            self.app.ready_event.wait()
 
     def reset(self) -> None:
         self.cpu.reset()
@@ -48,17 +51,18 @@ class GameBoy:
         pass
                     
     def update_screen(self, force=False):
-        screen_buffer = self.gpu.get_screen()
-        screen_surface = np.repeat(screen_buffer[:, :, np.newaxis] * 85, 3, axis=2)
-        if force or not (self.cpu.halted or self.cpu.stopped):
-            self.app.update_memory(self.memory.rom, self.cpu)
-            self.app.update_info(self.cpu)
-            if force or self.app.view_type in ["last", "oam", "io", "hram"]:
-                self.app.update_ram(self.memory, self.cpu)
-            if self.screen:
-                self.app.update_image(self.gpu.get_screen())
-        else:
-            self.app.root.update()
+        if self.window:
+            screen_buffer = self.gpu.get_screen()
+            screen_surface = np.repeat(screen_buffer[:, :, np.newaxis] * 85, 3, axis=2)
+            if force or not (self.cpu.halted or self.cpu.stopped):
+                self.app.update_memory(self.memory.rom, self.cpu)
+                self.app.update_info(self.cpu)
+                if force or self.app.view_type in ["last", "oam", "io", "hram"]:
+                    self.app.update_ram(self.memory, self.cpu)
+                if self.screen:
+                    self.app.update_image(self.gpu.get_screen())
+            else:
+                self.app.root.update()
 
         #cv2.imshow('Game Boy Screen', screen_surface)
         #cv2.waitKey(1)
@@ -134,8 +138,12 @@ class GameBoy:
             #if frame_time < 1/60:
             #    time.sleep(1/60 - frame_time)
             #last_time = current_time
+
     def dump(self, type: str) -> None:
         path = f"../dump.{type}"
         with open(path, "wb") as f:
             f.write(getattr(self.memory,  type))
         print(f"dumped by: {path}")
+
+    def close(self):
+        SystemExit()

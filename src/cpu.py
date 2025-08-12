@@ -15,7 +15,7 @@ class CPU:
         self.l = 0
         self.f = 0x00000000 # флаги первые 4 бита
         self.pc = 0 # счетчик
-        self.sp = 0xFFFE # стэк
+        self.sp = 0x0000 # стэк
         self.cycles = 0
         try: self.memory
         except: self.memory = None
@@ -922,6 +922,8 @@ class CPU:
             if cb == 0x87:
                 self.a = 0
                 print("cb reset a")
+            else:
+                IndexError(f"Unknown prefix cb: {cb:02X}")
             cycles(4)
         elif opcode == 0xCC: # CALL Z,a16  | ---- | 3 24/12
             address = self.read_word()
@@ -1099,7 +1101,6 @@ class CPU:
 
 
         else:
-            print(f"Unknown opcode: 0x{opcode:02X}")
-            exit()
+            IndexError(f"Unknown opcode: 0x{opcode:02X}")
             return False
         return True

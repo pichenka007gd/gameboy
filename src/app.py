@@ -34,6 +34,7 @@ class App(threading.Thread):
 
     def exit(self):
         self.root.destroy()
+        self.gb.close()
         os._exit(0)
 
     def run(self) -> None:

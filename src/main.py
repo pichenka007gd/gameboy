@@ -16,7 +16,6 @@ import numpy as np
 import cv2
 from tkinter import *
 from tkinter import ttk
-import atexit
 
 
 
