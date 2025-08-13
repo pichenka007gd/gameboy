@@ -7,3 +7,6 @@
 [submodule "tests/mgbdis"]
 	path = tests/mgbdis
 	url = https://github.com/mattcurrie/mgbdis.git
+[submodule "tests/PyBoy"]
+	path = tests/PyBoy
+	url = https://github.com/Baekalfen/PyBoy
