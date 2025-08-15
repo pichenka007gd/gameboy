@@ -27,37 +27,6 @@ import re
 
 
 
-def remove_logger():
-    TEXTS = ['''                "Performing overwrite on address: 0x%04x:0x%04x. New value: 0x%04x Old value: 0x%04x",''',
-            "                rom_bank,",
-            "                address,",
-            "                value,",
-            "                self.rombanks[rom_bank, address],",
-            "            )",]
-
-    #print(pattern.match("""logger.debug("Cython compilation status: %s", cython_compiled)"""))
-
-    for filename in glob.glob('PyBoy/pyboy/**/*.py', recursive=True):
-        with open(filename, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        q = 0
-        with open(filename, 'w', encoding='utf-8') as f:
-            for i in range(len(lines)):
-                if "logger.debug(" in lines[i-q] and  lines[i-q][-2] == ")":
-                    print(filename)
-                    count = len(lines[i-q]) - len(lines[i-q].lstrip(' '))
-                    f.writelines(" "*count+"pass\n")
-                elif "logger.debug(" in lines[i-q] and  lines[i-q][-2] == "(":
-                    print(filename)
-                    count = len(lines[i-q]) - len(lines[i-q].lstrip(' '))
-                    f.writelines(" "*count+"print(\n")
-                else:
-                    f.writelines(lines[i-q])
-
-
-
-remove_logger()
-
 
 from PyBoy.pyboy.pyboy import PyBoy
 
@@ -72,7 +41,6 @@ class GameBoyInspector:
             cgb=None,
             log_level="ERROR",
         )
-        print(self.pyboy.mb)
 
         self.slow_delay = slow_delay
         self.step_count = 0
@@ -186,10 +154,12 @@ class GameBoyInspector:
                 break
 
     def step(self) -> bool:
-        #alive = self.pyboy.mb.cpu.fetch_and_execute()
-        alive = self.pyboy.tick(render=False, sound=False)
+        self.cycles = self.pyboy.mb.cpu.cycles
+        #self.pyboy.mb.cpu.fetch_and_execute()
+        self.pyboy.mb.cpu.tick(4)
         self.step_count += 1
-        return alive
+        cycles = self.pyboy.mb.cpu.cycles - self.cycles
+        return cycles
 
 
     def run_continuous(self):

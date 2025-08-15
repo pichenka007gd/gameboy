@@ -14,7 +14,7 @@ class CPU:
         self.h = 0
         self.l = 0
         self.f = 0x00000000 # флаги первые 4 бита
-        self.pc = 0 # счетчик
+        self.pc = 0x100 # счетчик
         self.sp = 0x0000 # стэк
         self.cycles = 0
         try: self.memory
@@ -37,6 +37,7 @@ class CPU:
         }
 
         self.temp = 0x00 
+        self.opcode = 0x00
         
     def get_reg_pair(self, pair: str) -> int:
         high, low = self.get_reg(pair[0]), self.get_reg(pair[1])
@@ -59,7 +60,6 @@ class CPU:
         
     def reset(self) -> None:
         self.__init__()
-        self.pc = 0x100 # Точка входа для картриджей
         
     def get_flag(self, flag: int) -> bool:
         return (self.f & flag) != 0
@@ -87,6 +87,8 @@ class CPU:
         
     def pop(self) -> int:
         value = self.memory.read_byte(self.sp) | (self.memory.read_byte(self.sp + 1) << 8)
+        #print(f"{self.pc:02X}")
+        #print(f"{value:02X}")
         self.sp += 2
         return value
     
@@ -163,7 +165,7 @@ class CPU:
         
     def xor_reg(self, reg: str, value: int) -> None:
         self.set_reg(reg, self.get_reg(reg) ^ value)
-        self.set_flag(self.FLAG_Z, self.get_reg == 0)
+        self.set_flag(self.FLAG_Z, self.get_reg(reg) == 0)
         self.set_flag(self.FLAG_N, False)
         self.set_flag(self.FLAG_H, False)
         self.set_flag(self.FLAG_C, False)
@@ -207,8 +209,15 @@ class CPU:
         result = (temp - 1) & 0xFFFF
         self.set_reg_pair(regpair, result)
 
+    def srl_reg(self, reg):
+        temp = self.get_reg(reg) >> 1
+        self.set_flag(self.FLAG_Z, temp == 0)
+        self.set_flag(self.FLAG_N, False)
+        self.set_flag(self.FLAG_H, False)
+        self.set_flag(self.FLAG_C, self.get_reg(reg) & 0x1)
+        self.set_reg(reg, temp)
     def execute_instruction(self, opcode: int) -> bool:
-        
+        self.opcode = opcode
         self.cycles = 4  # Базовое количество циклов
 
         def cycles(x: int) -> None:
@@ -719,28 +728,28 @@ class CPU:
             self.adc_reg("A", self.a)
             cycles(4)
         elif opcode == 0x90: # SUB B       | Z1HC | 1 4
-            self.sub_reg("a", self.b)
+            self.sub_reg("A", self.b)
             cycles(4)
         elif opcode == 0x91: # SUB C       | Z1HC | 1 4
-            self.sub_reg("a", self.c)
+            self.sub_reg("A", self.c)
             cycles(4)
         elif opcode == 0x92: # SUB D       | Z1HC | 1 4
-            self.sub_reg("a", self.d)
+            self.sub_reg("A", self.d)
             cycles(4)
         elif opcode == 0x93: # SUB E       | Z1HC | 1 4
-            self.sub_reg("a", self.e)
+            self.sub_reg("A", self.e)
             cycles(4)
         elif opcode == 0x94: # SUB H       | Z1HC | 1 4
-            self.sub_reg("a", self.h)
+            self.sub_reg("A", self.h)
             cycles(4)
         elif opcode == 0x95: # SUB L       | Z1HC | 1 4
-            self.sub_reg("a", self.l)
+            self.sub_reg("A", self.l)
             cycles(4)
         elif opcode == 0x96: # SUB (HL)    | Z1HC | 1 8
-            self.sub_reg("a", self.memory.read_byte(self.get_reg_pair("HL")))
+            self.sub_reg("A", self.memory.read_byte(self.get_reg_pair("HL")))
             cycles(8)
         elif opcode == 0x97: # SUB A       | Z1HC | 1 4
-            self.sub_reg("a", self.a)
+            self.sub_reg("A", self.a)
             cycles(4)
         elif opcode == 0x98: # SBC A,B     | Z1HC | 1 4
             self.sbc_reg("A", self.b)
@@ -889,7 +898,6 @@ class CPU:
                 cycles(24)
             else:
                 cycles(12)
-            cycles(12)
         elif opcode == 0xC5: # PUSH BC     | ---- | 1 16
             self.push(self.get_reg_pair("BC"))
             cycles(16)
@@ -919,12 +927,14 @@ class CPU:
         elif opcode == 0xCB: # PREFIX CB   | ---- | 1 4
             cb = self.read_byte()
             print(f"prefix cb: {cb:02X}")
-            if cb == 0x87:
+            if cb == 0x38:
+                self.srl_reg("B")
+            elif cb == 0x87:
                 self.a = 0
                 print("cb reset a")
             else:
-                IndexError(f"Unknown prefix cb: {cb:02X}")
-            cycles(4)
+                exit(f"Unknown prefix cb: {cb:02X}")
+            cycles(8)
         elif opcode == 0xCC: # CALL Z,a16  | ---- | 3 24/12
             address = self.read_word()
             if self.get_flag(self.FLAG_Z):
@@ -934,7 +944,7 @@ class CPU:
             else:
                 cycles(12)
         elif opcode == 0xCD: # CALL a16    | ---- | 3 24
-            self.push(self.pc)
+            self.push(self.pc + 2) # +++++++ 3333333 !!!1! +++ 222222 +++++ pc+1 ==== ++++++3 3333
             self.pc = self.read_word()
             cycles(24)
         elif opcode == 0xCE: # ADC A,d8    | Z0HC | 2 8

@@ -28,15 +28,18 @@ def collect_roms():
     return sorted(set(os.path.abspath(p) for p in roms))
 
 ROM_FILES = [collect_roms()[0]]
+ROM_FILES = collect_roms()
+
 
 @pytest.mark.parametrize("path", ROM_FILES, ids=lambda p: f'"{os.path.basename(p)}"')
 def test_cpu_instrs(path):
-    print("="*70)
     gb = GameBoy(window=False)
     gb.load_rom(path)
     gb.initialize()
     gbi = GameBoyInspector(path)
 
+    print()
+    print("="*70)
 
     for i in range(0x100):
         gbi.pyboy.memory[i] = 0x00
@@ -45,18 +48,43 @@ def test_cpu_instrs(path):
     rf.PC = 0x100
     cpu = gb.cpu
 
-    for step in range(100):
-        print(f"pc: {rf.PC:04X}, sp: {rf.SP:04X}, a: {rf.A:02X}, b: {rf.B:02X}, c: {rf.C:02X}, d: {rf.D:02X}, e: {rf.E:02X}, hl: {rf.HL:04X}, f: {rf.F:02X}")
-        print(f"pc: {cpu.pc:04X}, sp: {cpu.sp:04X}, a: {cpu.a:02X}, b: {cpu.b:02X}, c: {cpu.c:02X}, d: {cpu.d:02X}, e: {cpu.e:02X}, hl: {cpu.h<<4&cpu.l:04X}, f: {cpu.f:02X}")
-        print(f"="*70)
-        # f"{gb.cpu.pc:04X}")
-        cycles = gb.cpu.step()
-        alive = gbi.step()
-        reference = gbi.get_cpu_state()
+    gb_cycles = 0
+    gbi_cycles = 0
+
+    for step in range(100000):
+        gbi_log = f"pc: {rf.PC:04X}, sp: {rf.SP:04X}, a: {rf.A:02X}, b: {rf.B:02X}, c: {rf.C:02X}, d: {rf.D:02X}, e: {rf.E:02X}, hl: {rf.HL:04X}, f: {rf.F:02X}"
+        gb_log  = f"pc: {cpu.pc:04X}, sp: {cpu.sp:04X}, a: {cpu.a:02X}, b: {cpu.b:02X}, c: {cpu.c:02X}, d: {cpu.d:02X}, e: {cpu.e:02X}, hl: {cpu.get_reg_pair("HL"):04X}, f: {cpu.f:02X}"
+        def log():
+            print("gbi | ", gbi_log, step)
+            print("gb  | ", gb_log, step)
+            print(f"{gb.cpu.opcode:02X}")
+            print(f"="*70)
+
+        gbi_ram = gbi.pyboy.mb.ram.internal_ram0[0:0x2000]
+        gb_ram = gb.memory.ram
+        def dump():
+            open("dump.gbi", "wb").write(gbi_ram)
+            open("dump.gb", "wb").write(gb_ram)
+        assert gbi_ram == gb_ram, dump()
+
+        gb_cycles += gb.cpu.step()
+        gbi_cycles += gbi.step()
+        assert gbi_log == gb_log, log()
+        #if step % 1000 == 0:
+        #    print(gb_cycles)
+        #    log()
+        assert gbi_cycles == gb_cycles, log()
+        # reference = gbi.get_cpu_state()
         #assert gb.cpu.pc == rf.PC
         #assert list(gb.memory.hram) == reference["STACK"]
         
 
 
-
+# 16468 <- 16461
+# E           AssertionError: assert 'pc: C249, sp: DFFF, a: C3, b: 00, c: 00, d: D0, e: 00, hl: C7B1, f: C0' == 'pc: C247, sp: DFFF, a: C3, b: 00, c: 00, d: D0, e: 00, hl: C7B1, f: C0'
+# E             
+# E             - pc: C247, sp: DFFF, a: C3, b: 00, c: 00, d: D0, e: 00, hl: C7B1, f: C0
+# E             ?        ^
+# E             + pc: C249, sp: DFFF, a: C3, b: 00, c: 00, d: D0, e: 00, hl: C7B1, f: C0
+# E             ?        ^
 

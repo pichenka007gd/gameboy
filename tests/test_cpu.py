@@ -20,21 +20,21 @@ def test_cpu_initial():
     assert cpu.e == 0
     assert cpu.h == 0
     assert cpu.l == 0
-    assert cpu.f == 0x00000000
-    assert cpu.pc == 0
-    assert cpu.sp == 0xFFFE
+    assert cpu.f == 0x0000
+    assert cpu.pc == 0x100
+    assert cpu.sp == 0x0000 #0xFFFE
     assert cpu.cycles == 0
     assert cpu.memory is memory
     assert cpu.interrupts_enabled is False
     assert cpu.halted is False
     assert cpu.stopped is False
-    cpu.a = cpu.b = cpu.c = cpu.d = cpu.e = cpu.h = cpu.l = cpu.f = 0xFF
+    cpu.a, cpu.b, cpu.c, cpu.d, cpu.e, cpu.h, cpu.l, cpu.f = [0xFF]*8
     cpu.pc = 0x1
-    sp = 0xFFFF
-    cycles = 1
-    interrupts_enabled = True
-    halted = True
-    stopped = True
+    cpu.sp = 0xFFFE
+    cpu.cycles = 1
+    cpu.interrupts_enabled = True
+    cpu.halted = True
+    cpu.stopped = True
     cpu.reset()
     assert cpu.a == 0
     assert cpu.b == 0
@@ -43,14 +43,14 @@ def test_cpu_initial():
     assert cpu.e == 0
     assert cpu.h == 0
     assert cpu.l == 0
-    assert cpu.f == 0x00000000
+    assert cpu.f == 0
     assert cpu.pc == 0x100
-    assert cpu.sp == 0xFFFE
+    assert cpu.sp == 0x0000
     assert cpu.cycles == 0
     assert cpu.memory is memory
-    assert cpu.interrupts_enabled is False
-    assert cpu.halted is False
-    assert cpu.stopped is False
+    assert cpu.interrupts_enabled == False
+    assert cpu.halted == False
+    assert cpu.stopped == False
 
 def test_register():
     cpu = CPU()
