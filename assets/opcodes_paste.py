@@ -420,7 +420,7 @@ if opcode == 0xD1: # POP DE      | ---- | 1 12
     cycles(12)
 if opcode == 0xD2: # JP NC,a16   | ---- | 3 16/12
     cycles(12)
-if opcode == 0xD4: # CALL NC,a16 | ---- | 3 24/12
+if opcode == 0xD4: #  CALL NC,a16 | ---- | 3 24/12
     cycles(12)
 if opcode == 0xD5: # PUSH DE     | ---- | 1 16
     cycles(16)
@@ -434,9 +434,9 @@ if opcode == 0xD9: # RETI        | ---- | 1 16
     cycles(16)
 if opcode == 0xDA: # JP C,a16    | ---- | 3 16/12
     cycles(12)
-if opcode == 0xDC: # CALL C,a16  | ---- | 3 24/12
+if opcode == 0xDC: #  CALL C,a16 | ---- | 3 24/12
     cycles(12)
-if opcode == 0xDE: # SBC A,d8    | Z1HC | 2 8
+if opcode == 0xDE: #  SBC A,d8   | Z1HC | 2 8
     cycles(8)
 if opcode == 0xDF: # RST 18H     | ---- | 1 16
     cycles(16)
@@ -446,7 +446,7 @@ if opcode == 0xE1: # POP HL      | ---- | 1 12
     cycles(12)
 if opcode == 0xE2: # LD (C),A    | ---- | 2 8
     cycles(8)
-if opcode == 0xE5: # PUSH HL     | ---- | 1 16
+if opcode == 0xE5: #   PUSH HL   | ---- | 1 16
     cycles(16)
 if opcode == 0xE6: # AND d8      | Z010 | 2 8
     cycles(8)
@@ -458,7 +458,7 @@ if opcode == 0xE9: # JP (HL)     | ---- | 1 4
     cycles(4)
 if opcode == 0xEA: # LD (a16),A  | ---- | 3 16
     cycles(16)
-if opcode == 0xEE: # XOR d8      | Z000 | 2 8
+if opcode == 0xEE: #    XOR d8   | Z000 | 2 8
     cycles(8)
 if opcode == 0xEF: # RST 28H     | ---- | 1 16
     cycles(16)
@@ -470,7 +470,7 @@ if opcode == 0xF2: # LD A,(C)    | ---- | 2 8
     cycles(8)
 if opcode == 0xF3: # DI          | ---- | 1 4
     cycles(4)
-if opcode == 0xF5: # PUSH AF     | ---- | 1 16
+if opcode == 0xF5: #  PUSH AF    | ---- | 1 16
     cycles(16)
 if opcode == 0xF6: # OR d8       | Z000 | 2 8
     cycles(8)
@@ -484,7 +484,7 @@ if opcode == 0xFA: # LD A,(a16)  | ---- | 3 16
     cycles(16)
 if opcode == 0xFB: # EI          | ---- | 1 4
     cycles(4)
-if opcode == 0xFE: # CP d8       | Z1HC | 2 8
+if opcode == 0xFE: #   CP d8     | Z1HC | 2 8
     cycles(8)
-if opcode == 0xFF: # RST 38H     | ---- | 1 16
+if opcode == 0xFF: # RST 38H     | --- | 1 16
     cycles(16)
