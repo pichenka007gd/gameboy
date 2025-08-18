@@ -192,7 +192,7 @@ class App(threading.Thread):
 
     def _update_info(self, cpu: CPU) -> None:
         self.info_label.config(text=f"pc: {cpu.pc}, Z: {int(bool(cpu.f & cpu.FLAG_Z))}, N: {int(bool(cpu.f & cpu.FLAG_N))}, H: {int(bool(cpu.f & cpu.FLAG_H))}, C: {int(bool(cpu.f & cpu.FLAG_C))}, Hz: {self.gb.Hz}")
-        self.reg_label.config(text=f"a:{str(cpu.a).ljust(3)}, b: {str(cpu.b).ljust(3)}, c: {str(cpu.c).ljust(3)}, d: {str(cpu.d).ljust(3)}, e: {str(cpu.e).ljust(3)}, h: {str(cpu.h).ljust(3)}, l: {str(cpu.l).ljust(3)}")
+        self.reg_label.config(text=f"a: {str(cpu.a).ljust(3)}, b: {str(cpu.b).ljust(3)}, c: {str(cpu.c).ljust(3)}, d: {str(cpu.d).ljust(3)}, e: {str(cpu.e).ljust(3)}, h: {str(cpu.h).ljust(3)}, l: {str(cpu.l).ljust(3)}")
         
     def update_image(self, buffer: bytearray) -> None:
         self.command_queue.put(("update_image", (buffer,)))

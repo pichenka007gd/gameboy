@@ -94,7 +94,7 @@ class GameBoy:
 
         while True:
 
-            if time.time() - last_update > 1/30:
+            if time.time() - last_update > 1/(2 if self.screen else 30):
                 effective_Hz = self.Hz * speed_coef
                 self.update_screen()
                 time.sleep(0.01)

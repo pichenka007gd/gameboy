@@ -24,14 +24,22 @@ print("\n".join(["# "+ " # ".join(x) for x in opcodes]))
 with open(f"{NAME}_paste.py", "w") as file:
 	q = 0
 	for i in range(2**8):
-		if i in [0xD3, 0xDB, 0xDD, 0xE3, 0xE4, 0xEB, 0xEC, 0xED, 0xF4, 0xFC, 0xFD]:
+		if NAME == "opcodes" and i in [0xD3, 0xDB, 0xDD, 0xE3, 0xE4, 0xEB, 0xEC, 0xED, 0xF4, 0xFC, 0xFD]:
 			q += 1
 			continue
 		opcodes[i-q][0] = opcodes[i-q][0].ljust(11)
 		opcodes[i-q][1] = opcodes[i-q][1].replace("  ", " ")
 		opcodes[i-q][2] = "".join(opcodes[i-q][2].split())
+		if NAME=="opcodes":
+			file.write(f"if opcode == 0x{i:02X}: # {" | ".join([opcodes[i-q][0], opcodes[i-q][2], opcodes[i-q][1]])}\n    cycles({opcodes[i-q][1][-2:].replace(" ", "").replace("/", "")})\n")
+		elif NAME=="prefixs":
+			file.write(f"if prefix == 0x{i:02X}: # {" | ".join([opcodes[i-q][0], opcodes[i-q][2], opcodes[i-q][1]])}\n")
+			if "BIT" in opcodes[i-q][0] or "RES" in opcodes[i-q][0] or "SET" in opcodes[i-q][0]:
+				file.write(f'    self.{opcodes[i-q][0].split()[0].lower()}_prefix("{opcodes[i-q][0].split()[1].split(",")[1]}", {opcodes[i-q][0].split()[1].split(",")[0]})\n')
+			else:
+				file.write(f'    self.{opcodes[i-q][0].split()[0].lower()}_prefix("{opcodes[i-q][0].split()[1]}")\n')
+			file.write(f"    cycles({opcodes[i-q][1][-2:].replace(" ", "").replace("/", "")})\n")
 
-		file.write(f"if {"opcode" if NAME=="opcodes" else "prefix"} == 0x{i:02X}: # {" | ".join([opcodes[i-q][0], opcodes[i-q][2], opcodes[i-q][1]])}\n    cycles({opcodes[i-q][1][-2:].replace(" ", "").replace("/", "")})\n")
 
 
 

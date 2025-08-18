@@ -29,8 +29,8 @@ class GPU:
         
     def step(self, cycles: int):
         self.cycles += cycles
-        
 
+        # Read registers (keep this at the start)
         self.lcdc = self.memory.read_byte(0xFF40)
         self.stat = self.memory.read_byte(0xFF41)
         self.scy = self.memory.read_byte(0xFF42)
@@ -43,30 +43,24 @@ class GPU:
         self.wy = self.memory.read_byte(0xFF4A)
         self.wx = self.memory.read_byte(0xFF4B)
 
-        
-        # Режимы GPU:
-        # Mode 0: H-Blank (период после отрисовки линии)
-        # Mode 1: V-Blank (период после отрисовки всего экрана)
-        # Mode 2: Scanning OAM
-        # Mode 3: Transferring Data to LCD Driver
-        
-        if self.cycles >= 456:  
+        if self.cycles >= 456:
+            # FIX: Render CURRENT line (0-143) BEFORE advancing
+            if self.line < 144:  # Only render visible lines
+                self.render_line()
+            
             self.cycles -= 456
             self.line += 1
             self.ly = self.line
-            
             self.memory.write_byte(0xFF44, self.ly)
-            
-            if self.line == 144:  
+
+            # Handle line state transitions
+            if self.line == 144:  # Enter V-Blank
                 self.mode = 1
-            elif self.line >= 154:
+            elif self.line >= 154:  # Reset frame
                 self.line = 0
                 self.ly = 0
                 self.mode = 2
-            else:
-                
-                
-                self.render_line()
+                self.memory.write_byte(0xFF44, self.ly)
                 
     def render_line(self):
         

@@ -54,8 +54,8 @@ def test_cpu_initial():
 
 def test_register():
     cpu = CPU()
-    cpu.set_reg('a', 0xAA)
-    assert cpu.get_reg('a') == 0xAA
+    cpu.set_reg('A', 0xAA)
+    assert cpu.get_reg('A') == 0xAA
 
 def test_register_pair():
     cpu = CPU()

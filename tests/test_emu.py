@@ -28,7 +28,8 @@ def collect_roms():
     return sorted(set(os.path.abspath(p) for p in roms))
 
 ROM_FILES = [collect_roms()[0]]
-ROM_FILES = collect_roms()
+#R OM_FILES = collect_roms()
+
 
 
 @pytest.mark.parametrize("path", ROM_FILES, ids=lambda p: f'"{os.path.basename(p)}"')
@@ -52,27 +53,41 @@ def test_cpu_instrs(path):
     gbi_cycles = 0
 
     for step in range(100000):
+        gb_cycles = gb.cpu.step()
+        gbi_cycles = gbi.step()
+
         gbi_log = f"pc: {rf.PC:04X}, sp: {rf.SP:04X}, a: {rf.A:02X}, b: {rf.B:02X}, c: {rf.C:02X}, d: {rf.D:02X}, e: {rf.E:02X}, hl: {rf.HL:04X}, f: {rf.F:02X}"
         gb_log  = f"pc: {cpu.pc:04X}, sp: {cpu.sp:04X}, a: {cpu.a:02X}, b: {cpu.b:02X}, c: {cpu.c:02X}, d: {cpu.d:02X}, e: {cpu.e:02X}, hl: {cpu.get_reg_pair("HL"):04X}, f: {cpu.f:02X}"
+
+        
+        gbi_ram = gbi.pyboy.mb.ram.internal_ram0[0:0x2000]
+        #print(len(gbi.pyboy.mb.ram.internal_ram0)) 0xFC12 0xFE12
+        #print(0xFFFF)
+        gb_ram = gb.memory.ram 
+        
+        # gb_ram = [gb.memory.read_byte(i) for i in range(0xFFFF)]
+        # for i in range(0xFFFF):
+        #     if not 0xE000 <= i < 0xFE00:
+        #         print(i, gbi.pyboy.memory[i])
+        # gbi_ram = list(gbi.pyboy.memory)
+
+        def dump():
+            open("dump.gbi", "wb").write(gbi_ram)
+            open("dump.gb", "wb").write(gb_ram)
         def log():
             print("gbi | ", gbi_log, step)
             print("gb  | ", gb_log, step)
             print(f"{gb.cpu.opcode:02X}")
             print(f"="*70)
+            #dump()
 
-        gbi_ram = gbi.pyboy.mb.ram.internal_ram0[0:0x2000]
-        gb_ram = gb.memory.ram
-        def dump():
-            open("dump.gbi", "wb").write(gbi_ram)
-            open("dump.gb", "wb").write(gb_ram)
+
         assert gbi_ram == gb_ram, dump()
 
-        gb_cycles += gb.cpu.step()
-        gbi_cycles += gbi.step()
+
         assert gbi_log == gb_log, log()
-        #if step % 1000 == 0:
-        #    print(gb_cycles)
-        #    log()
+        if step % 1000 == 0:
+            log()
         assert gbi_cycles == gb_cycles, log()
         # reference = gbi.get_cpu_state()
         #assert gb.cpu.pc == rf.PC
