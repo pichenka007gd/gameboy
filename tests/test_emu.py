@@ -1,6 +1,9 @@
 import pytest
+#import heartrate; heartrate.trace(browser=True)
+
 
 import inspect
+import time
 import os
 import sys
 import glob
@@ -52,6 +55,11 @@ def test_cpu_instrs(path):
     gb_cycles = 0
     gbi_cycles = 0
 
+    gb_ram = bytearray([gb.memory.read_byte(i) for i in range(0xFFFF)])
+    gbi_ram = bytearray([gbi.pyboy.memory[i] for i in range(0xFFFF)])
+
+
+
     for step in range(100000):
         gb_cycles = gb.cpu.step()
         gbi_cycles = gbi.step()
@@ -60,15 +68,23 @@ def test_cpu_instrs(path):
         gb_log  = f"pc: {cpu.pc:04X}, sp: {cpu.sp:04X}, a: {cpu.a:02X}, b: {cpu.b:02X}, c: {cpu.c:02X}, d: {cpu.d:02X}, e: {cpu.e:02X}, hl: {cpu.get_reg_pair("HL"):04X}, f: {cpu.f:02X}"
 
         
-        gbi_ram = gbi.pyboy.mb.ram.internal_ram0[0:0x2000]
-        #print(len(gbi.pyboy.mb.ram.internal_ram0)) 0xFC12 0xFE12
+        #gbi_ram = gbi.pyboy.mb.ram.internal_ram0[0:0x2000]
+        #print(len([gbi.pyboy.memory[i] for i in range(0xFFFF)]))
         #print(0xFFFF)
-        gb_ram = gb.memory.ram 
+        #gb_ram = gb.memory.ram 
         
-        # gb_ram = [gb.memory.read_byte(i) for i in range(0xFFFF)]
-        # for i in range(0xFFFF):
-        #     if not 0xE000 <= i < 0xFE00:
-        #         print(i, gbi.pyboy.memory[i])
+
+
+        gb_ram = bytearray([gb.memory.read_byte(i) for i in range(0xFFFF)])
+        gbi_ram = bytearray([gbi.pyboy.memory[i] for i in range(0xFFFF)])
+
+        for i in range(len(gb_ram)):
+            if gb_ram[i] != gbi_ram[i]:
+                print(gbi_ram[i], gb_ram[i], f"{i:02X}", "Error")
+                #dump()
+        exit()
+
+
         # gbi_ram = list(gbi.pyboy.memory)
 
         def dump():
@@ -82,11 +98,17 @@ def test_cpu_instrs(path):
             #dump()
 
 
-        assert gbi_ram == gb_ram, dump()
+        for i in range(len(gb_ram)):
+            if gb_ram[i] != gbi_ram[i]:
+                print(gbi_ram[i], gb_ram[i], f"{i:02X}", "Error")
+                dump()
+                exit()
+        #assert gbi_ram == gb_ram, dump()
+        print(100)
 
 
         assert gbi_log == gb_log, log()
-        if step % 1000 == 0:
+        if step % 1 == 0:
             log()
         assert gbi_cycles == gb_cycles, log()
         # reference = gbi.get_cpu_state()

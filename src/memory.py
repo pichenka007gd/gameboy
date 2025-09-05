@@ -4,7 +4,7 @@ class Memory:
         self.rom_bank = 1
         self.vram = bytearray(0x2000)     # 8 KB VRAM
         self.ram = bytearray(0x2000)      # 8 KB Internal RAM
-        self.cart_ram = bytearray(0x2000) # Cartridge RAM (размер варьируется)
+        self.cart_ram = bytearray([0xFF]*0x2000) # Cartridge RAM (размер варьируется)
         self.oam = bytearray(0xA0)        # Sprite Attribute Table (160 bytes)
         self.io = bytearray(0x80)         # I/O Registers (128 bytes)
         self.hram = bytearray(0x7F)       # High RAM (127 bytes)s
