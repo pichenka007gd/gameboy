@@ -37,7 +37,7 @@ class GameBoyInspector:
             rom_path,
             window=window_backend,
             bootrom=bootrom,
-            sound_emulated=False,
+            sound_emulated=False, # 0xF24 Error
             cgb=None,
             log_level="ERROR",
         )
@@ -157,6 +157,8 @@ class GameBoyInspector:
         self.cycles = self.pyboy.mb.cpu.cycles
         #self.pyboy.mb.cpu.fetch_and_execute()
         self.pyboy.mb.cpu.tick(4)
+        b = self.pyboy.stopped
+        if b: exit()
         self.step_count += 1
         cycles = self.pyboy.mb.cpu.cycles - self.cycles
         return cycles

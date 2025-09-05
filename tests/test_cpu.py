@@ -7,12 +7,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../s
 
 from cpu import CPU
 from memory import Memory
+from gameboy import GameBoy
 
 
 def test_cpu_initial():
-    cpu = CPU()
-    memory = Memory()
-    cpu.connect_memory(memory)
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     assert cpu.a == 0
     assert cpu.b == 0
     assert cpu.c == 0
@@ -24,7 +24,6 @@ def test_cpu_initial():
     assert cpu.pc == 0x100
     assert cpu.sp == 0x0000 #0xFFFE
     assert cpu.cycles == 0
-    assert cpu.memory is memory
     assert cpu.interrupts_enabled is False
     assert cpu.halted is False
     assert cpu.stopped is False
@@ -47,18 +46,19 @@ def test_cpu_initial():
     assert cpu.pc == 0x100
     assert cpu.sp == 0x0000
     assert cpu.cycles == 0
-    assert cpu.memory is memory
     assert cpu.interrupts_enabled == False
     assert cpu.halted == False
     assert cpu.stopped == False
 
 def test_register():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.set_reg('A', 0xAA)
     assert cpu.get_reg('A') == 0xAA
 
 def test_register_pair():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.b = 0x12
     cpu.c = 0x34
     assert cpu.get_reg_pair('BC') == 0x1234
@@ -66,7 +66,8 @@ def test_register_pair():
     assert cpu.b == 0xAB
     assert cpu.c == 0xCD
 
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.d = 0x56
     cpu.e = 0x78
     assert cpu.get_reg_pair('DE') == 0x5678
@@ -74,7 +75,8 @@ def test_register_pair():
     assert cpu.d == 0x7A
     assert cpu.e == 0x3F
 
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.h = 0x48
     cpu.l = 0x26
     assert cpu.get_reg_pair('HL') == 0x4826
@@ -82,7 +84,8 @@ def test_register_pair():
     assert cpu.h == 0xF7
     assert cpu.l == 0xC9
 
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.a = 0x90
     cpu.f = 0x36
     assert cpu.get_reg_pair('AF') == 0x9036
@@ -91,7 +94,8 @@ def test_register_pair():
     assert cpu.f == 0x0F
 
 def test_flags():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.set_flag(cpu.FLAG_Z, True)
     assert cpu.get_flag(cpu.FLAG_Z)
     cpu.set_flag(cpu.FLAG_Z, False)
@@ -113,7 +117,8 @@ def test_flags():
     assert not cpu.get_flag(cpu.FLAG_C)
 
 def test_add():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.a = 10
     cpu.add_reg("A", 5)
     assert cpu.a == 15
@@ -121,7 +126,8 @@ def test_add():
     assert cpu.a == 0
 
 def test_sub():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.a = 5
     cpu.sub_reg("A", 5)
     assert cpu.a == 0
@@ -131,7 +137,8 @@ def test_sub():
     assert cpu.a == (2 - 3) & 0xFF
 
 def test_inc_register():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.set_reg('B', 0xFF)
     cpu.inc_reg('B')
     assert cpu.get_reg('B') == 0
@@ -142,7 +149,8 @@ def test_inc_register():
     assert cpu.get_flag(cpu.FLAG_H)
 
 def test_dec_register():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.set_reg('B', 1)
     cpu.dec_reg('B')
     assert cpu.get_reg('B') == 0
@@ -163,13 +171,15 @@ def test_dec_register():
     assert cpu.sp == 0xFF00"""
 
 def test_reset():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.pc = 0x77
     cpu.reset()
     assert cpu.pc == 0x100
 
 def test_and_or_xor_cp():
-    cpu = CPU()
+    gb = GameBoy(window = False)
+    cpu = gb.cpu
     cpu.a = 0b10101010
     cpu.and_reg("A", 0b11001100)
     assert cpu.a == (0b10101010 & 0b11001100)
@@ -183,11 +193,6 @@ def test_and_or_xor_cp():
     cpu.cp_reg("A", 0x5A)
     assert cpu.get_flag(cpu.FLAG_Z)
 
-def test_memory_connection():
-    cpu = CPU()
-    memory = Memory
-    cpu.connect_memory(memory)
-    assert cpu.memory is memory
 
 
 

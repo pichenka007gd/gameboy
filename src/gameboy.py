@@ -5,6 +5,7 @@ from input import Input
 from cartridge import Cartridge
 from app import App
 from logger import Logger
+from common import Common
 
 import time
 import numpy as np
@@ -17,6 +18,8 @@ class GameBoy:
         self.gpu = GPU()
         self.input = Input()
         self.cartridge = Cartridge()
+        self.common = Common(self)
+
 
         self.screen = screen
         self.stopped = False
@@ -28,7 +31,7 @@ class GameBoy:
         
     def initialize(self) -> None:
         self.cpu.reset()
-        self.cpu.connect_memory(self.memory)
+        self.cpu.connect(self)
         self.gpu.connect_memory(self.memory)
         self.running = True
         if self.window:
@@ -40,7 +43,7 @@ class GameBoy:
         memory = Memory()
         memory.rom = self.memory.rom
         self.memory = memory
-        self.cpu.connect_memory(self.memory)
+        self.cpu.connect(self)
 
     def load_rom(self, rom_path: str) -> bool:
         self.cartridge.load(rom_path)

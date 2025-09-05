@@ -1,5 +1,6 @@
 from memory import Memory
 from logger import Logger
+from common import Common
 import ctypes
 
 
@@ -24,7 +25,8 @@ class CPU:
         self.interrupts_enabled = False
         self.halted = False
         self.stopped = False
-        
+
+
         self.FLAG_Z = 0x80 # устанавливается если результат равен 0
         self.FLAG_N = 0x40 # устанавливается после операции вычитания
         self.FLAG_H = 0x20 # если был перенос между младшими и старшими 4 битами
@@ -63,7 +65,7 @@ class CPU:
         elif reg.lower() in ["(hl)"]:
             return self.memory.read_byte(self.get_reg_pair("HL"))
         else:
-            IndexError(f"register name error: {reg}")
+            raise IndexError(f"register name error: {reg}")
 
     def set_reg(self, reg: str, value: int) -> None:
         if reg.lower() in ["a", "b", "c", "d", "e", "h", "l", "f"]:
@@ -73,8 +75,10 @@ class CPU:
         else:
             IndexError(f"register name error: {reg}")
         
-    def connect_memory(self, memory: Memory) -> None:
-        self.memory = memory
+    def connect(self, gb) -> None:
+        self.memory = gb.memory
+        self.common = gb.common
+
         
     def reset(self) -> None:
         self.__init__()
@@ -112,7 +116,11 @@ class CPU:
     def step(self) -> int:
         opcode = self.read_byte()
         delta_cycles = self.cycles
+
         self.execute_instruction(opcode)
+
+        self.common.step()
+
         return self.cycles - delta_cycles
         
     def add_reg(self, reg: str, value: int) -> None:

@@ -4,7 +4,7 @@ class Memory:
         self.rom_bank = 1
         self.vram = bytearray(0x2000)     # 8 KB VRAM
         self.ram = bytearray(0x2000)      # 8 KB Internal RAM
-        self.cart_ram = bytearray([0xFF]*0x2000) # Cartridge RAM (размер варьируется)
+        self.cart_ram = bytearray(0x2000) # Cartridge RAM (размер варьируется)
         self.oam = bytearray(0xA0)        # Sprite Attribute Table (160 bytes)
         self.io = bytearray(0x80)         # I/O Registers (128 bytes)
         self.hram = bytearray(0x7F)       # High RAM (127 bytes)s
@@ -35,7 +35,7 @@ class Memory:
             return self.oam[address - 0xFE00]
         elif 0xFEA0 <= address < 0xFF00:
             # Неиспользуемая область (не разрешено обращаться)
-            return 0xFF
+            return 0x00 #0xFF # in gbi is 0x00
         elif 0xFF00 <= address < 0xFF80:
             return self.io[address - 0xFF00]
         elif 0xFF80 <= address < 0xFFFF:
@@ -65,6 +65,9 @@ class Memory:
             # Неиспользуемый диапазон
             pass
         elif 0xFF00 <= address < 0xFF80:
+            if address == 0xFF04:
+                self.io[address - 0xFF00] = 0
+                return
             self.io[address - 0xFF00] = value
         elif 0xFF80 <= address < 0xFFFF:
             self.hram[address - 0xFF80] = value

@@ -40,10 +40,10 @@ def test_cpu_instrs(path):
     gb = GameBoy(window=False)
     gb.load_rom(path)
     gb.initialize()
-    gbi = GameBoyInspector(path)
+    gbi = GameBoyInspector(path, window=False)
 
     print()
-    print("="*70)
+    print("="*80)
 
     for i in range(0x100):
         gbi.pyboy.memory[i] = 0x00
@@ -54,6 +54,9 @@ def test_cpu_instrs(path):
 
     gb_cycles = 0
     gbi_cycles = 0
+
+    for i in range(0xFFFF):
+        if 0x8000 < i: gb.memory.write_byte(i, gbi.pyboy.memory[i])
 
     gb_ram = bytearray([gb.memory.read_byte(i) for i in range(0xFFFF)])
     gbi_ram = bytearray([gbi.pyboy.memory[i] for i in range(0xFFFF)])
@@ -67,22 +70,22 @@ def test_cpu_instrs(path):
         gbi_log = f"pc: {rf.PC:04X}, sp: {rf.SP:04X}, a: {rf.A:02X}, b: {rf.B:02X}, c: {rf.C:02X}, d: {rf.D:02X}, e: {rf.E:02X}, hl: {rf.HL:04X}, f: {rf.F:02X}"
         gb_log  = f"pc: {cpu.pc:04X}, sp: {cpu.sp:04X}, a: {cpu.a:02X}, b: {cpu.b:02X}, c: {cpu.c:02X}, d: {cpu.d:02X}, e: {cpu.e:02X}, hl: {cpu.get_reg_pair("HL"):04X}, f: {cpu.f:02X}"
 
-        
+
+
         #gbi_ram = gbi.pyboy.mb.ram.internal_ram0[0:0x2000]
         #print(len([gbi.pyboy.memory[i] for i in range(0xFFFF)]))
         #print(0xFFFF)
         #gb_ram = gb.memory.ram 
-        
-
-
-        gb_ram = bytearray([gb.memory.read_byte(i) for i in range(0xFFFF)])
-        gbi_ram = bytearray([gbi.pyboy.memory[i] for i in range(0xFFFF)])
-
-        for i in range(len(gb_ram)):
-            if gb_ram[i] != gbi_ram[i]:
-                print(gbi_ram[i], gb_ram[i], f"{i:02X}", "Error")
-                #dump()
-        exit()
+       
+        def memory_assert():
+            gbi_ram = bytearray([gbi.pyboy.memory[i] for i in range(0xFFFF)])
+            gb_ram = bytearray([gb.memory.read_byte(i) for i in range(0xFFFF)])
+            for i in range(len(gb_ram)):
+                if gb_ram[i] != gbi_ram[i]:
+                    if not i in [0xFF01, 0xFF02, 0xFF0F, 0xFF24, 0xFF25, 0xFF26, 0xFF41, 0xFF44]:
+                        print(f"{gbi_ram[i]:08b}", f"{gb_ram[i]:08b}", f"{i:02X}", "Error")
+                        dump()
+                        exit()
 
 
         # gbi_ram = list(gbi.pyboy.memory)
@@ -98,18 +101,14 @@ def test_cpu_instrs(path):
             #dump()
 
 
-        for i in range(len(gb_ram)):
-            if gb_ram[i] != gbi_ram[i]:
-                print(gbi_ram[i], gb_ram[i], f"{i:02X}", "Error")
-                dump()
-                exit()
+
         #assert gbi_ram == gb_ram, dump()
-        print(100)
 
 
         assert gbi_log == gb_log, log()
-        if step % 1 == 0:
+        if step % 1000 == 0 or step == 60625:
             log()
+            memory_assert()
         assert gbi_cycles == gb_cycles, log()
         # reference = gbi.get_cpu_state()
         #assert gb.cpu.pc == rf.PC

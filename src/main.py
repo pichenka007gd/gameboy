@@ -20,7 +20,7 @@ from tkinter import ttk
 
 
 if __name__ == "__main__":
-    gameboy = GameBoy(screen=False)
+    gameboy = GameBoy(screen=True)
     gameboy.load_rom("../tests/gb-test-roms/instr_timing/instr_timing.gb")
     #gameboy.load_rom("/storage/emulated/0/300/gameboy/assets/Battle City.gb")
         
